@@ -2,7 +2,6 @@
 
 推薦的python版本 = 3.13
 
-suggest python ver = 3.13
 
 ## 如何開始
 1. 下載zip檔案
