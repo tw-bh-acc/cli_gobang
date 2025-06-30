@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
 """
-Python Tool 5
+Positive Tool 5
 一個好用的工具箱
 by TW_bh
 """
@@ -8,19 +10,21 @@ import os
 import time
 import subprocess
 import logging
-from rich.traceback import install as ti
+import sys
+
+from rich.traceback import install as rti
 from rich.logging import RichHandler
 
-ti()
+rti()
 
 ############################
-# Python Tool工具-v5.9 
-PT工具箱_ver = "5.9"
+# Positive Tool工具-versin 
+PT_ver = "5.16"
 ############################
 
-log_file_path = "./.pt_logs.log"
+log_file_path = os.path.join(".", ".log")
 
-FORMAT = f"%(asctime)s | PT_v{PT工具箱_ver} | %(name)s | %(levelname)s | %(message)s"
+FORMAT = f"%(asctime)s | PT_v{PT_ver} | %(name)s | %(levelname)s | %(message)s"
 DATEFMT = "[%Y-%m-%d %H:%M:%S]"
 # 建立 RichHandler（終端輸出）
 console_handler = RichHandler(rich_tracebacks=True)
@@ -43,9 +47,10 @@ logging.basicConfig(
 )
 
 # 使用 Logger
-logger = logging.getLogger("PT_log")
+pt_logger = logging.getLogger("PT_log")
 
-PT工具箱_change_log = """
+
+PT_change_log = """
 5.0:
     **2025-05-30**
     !!!!!!!!!!!!!!!!!!!
@@ -72,7 +77,7 @@ PT工具箱_change_log = """
 
 5.4:
     **2025-06-05**
-    1增加log。
+    1開始使用logging module。
     2將.get()改為[]。,因為已經if color in COLORS過了
 
 5.5:
@@ -94,10 +99,39 @@ PT工具箱_change_log = """
 5.9:
     **2025-06-13**
     1新增get_lines()。
+
+5.10:
+    **2025-06-14**
+    1使用get_lines()重寫print_long()。
+
+5.11:
+    **2025-06-15**
+    1優化。
+
+5.12:
+    **2025-06-15**
+    **BREAKING UPDATE**
+    **破壞性更新 — get_lines()將被刪除（搬移）**
+    1get_lines()將搬移到ptbi.py，pt.py將不會有get_lines()。
+
+5.13:
+    **2025-06-17**
+    1新增get_parts()。
+
+5.14:
+    **2025-06-22**
+    1刪除logging
+    2修復錯誤。,test的對齊 & 註解錯字
+
+5.15:
+    **2025-06-23**
+    1新增logging。
+
+5.16:
+    **2025-06-25**
+    1新增AutoResetColor。
 """
-##
-logger.debug("使用PT v" + PT工具箱_ver)
-##
+
 CREDIT_TEXT_1 = r"""
      |
      |
@@ -173,7 +207,7 @@ COLORS = {
     "reset_crossed_out": "\033[29m",  # 重置刪除線
     "frame": "\033[51m",  # 框架 (終端支援度低)
     "encircled": "\033[52m",  # 外框 (終端支援度低)
-    "overlined": "\033[53m",  # 上劃線 (終端支援度低)
+    "overlined": "\033[53m",  # 上劃線 (終端支援度不一)
     # --- 基本前景顏色 (30-37) ---
     "black": "\033[30m",  # 黑色
     "red": "\033[31m",  # 紅色
@@ -266,7 +300,7 @@ NO_TEXT = "no _text。 PT 5"
 
 def sleep(time_long: float):
     sleep_st_time = time.time()
-    logger.debug("[sleep](start) 開始時間:" + sleep_st_time)
+    pt_logger.debug("[sleep](start) 開始時間:" + str(sleep_st_time))
     while True:
         sleep_end_time = time.time()
         sleep_count = sleep_end_time - sleep_st_time
@@ -274,10 +308,10 @@ def sleep(time_long: float):
             break
         else:
             continue
-    logger.debug("  -->[sleep](finish) 結束時間:" + sleep_end_time)
+    pt_logger.debug("  -->[sleep](finish) 結束時間:" + str(sleep_end_time))
 
 
-def check_road(give_road: str | None = None) -> str:
+def select_check_road(give_road=None) -> str:
     """select五件套的副程式，檢查路徑"""
     ##check road    檢查路徑
     if give_road is None:
@@ -285,12 +319,12 @@ def check_road(give_road: str | None = None) -> str:
     else:
         try:
             if os.path.isdir(give_road) is True:
-                pass
+                RunningPath = give_road
             elif os.path.isfile(give_road) is True:
                 RunningPath = os.path.dirname(give_road)
-            RunningPath = give_road
         except FileNotFoundError:
             RunningPath = os.path.join(os.getcwd(), give_road)
+    ##
     try:
         if os.path.isdir(RunningPath) is True:
             pass
@@ -299,6 +333,10 @@ def check_road(give_road: str | None = None) -> str:
             RunningPath = os.path.dirname(RunningPath)
     except (FileNotFoundError, PermissionError):
         RunningPath = os.getcwd()
+    ##
+    if os.path.exists(RunningPath) is False:
+        RunningPath = os.getcwd()
+    ##
     return RunningPath
 
 
@@ -434,7 +472,7 @@ def select_print_dir(
 
 def select_folder_file(give_road=None) -> str:
     """選擇檔案或資料夾"""
-    RunningPath = check_road(give_road)
+    RunningPath = select_check_road(give_road)
     # main
     while True:
         print_color("reset", "")
@@ -476,7 +514,7 @@ def select_folder_file(give_road=None) -> str:
 
 def select_file_dir(give_road=None) -> str:
     """自由選擇資料夾內的檔案"""
-    RunningPath = check_road(give_road)
+    RunningPath = select_check_road(give_road)
     # main
     while True:
         print_color("reset", "\n")
@@ -518,7 +556,7 @@ def select_file_dir(give_road=None) -> str:
 
 def select_file(give_road=None):
     """在指定的資料夾內選擇檔案"""
-    RunningPath = check_road(give_road)
+    RunningPath = select_check_road(give_road)
     # main
     while True:
         print_color("reset", "")
@@ -557,7 +595,7 @@ def select_file(give_road=None):
 
 def select_folder_dir(give_road=None) -> str:
     """在可以自由選擇資料夾的狀態，選擇資料夾。"""
-    RunningPath = check_road(give_road)
+    RunningPath = select_check_road(give_road)
     # main
     while True:
         print_color("reset", " ")
@@ -595,7 +633,7 @@ def select_folder_dir(give_road=None) -> str:
 
 def select_folder(give_road=None):
     """在指定的資料夾內選擇資料夾"""
-    RunningPath = check_road(give_road)
+    RunningPath = select_check_road(give_road)
     #
     while True:
         folder_num = 0
@@ -647,28 +685,30 @@ def credit(clean_screen: bool = False, clean_type: str = "command"):
     print()
     print_color("bright_cyan", CREDIT_TEXT_5)
     print()
-    #
-    logger.debug(f"[credit]清除螢幕內容: {clean_screen}")
     return None
 
 
 def welcome(clean_screen: bool = False, clean_type: str = "command"):
     """
     用法：
-        `clean_screen`
-            True時,清楚螢幕上的內
-            False時,不清楚
+        `clean_screen` 選項
+            =>True  清除螢幕上的內容（文字）
+            =>False 不清除
     (return None)"""
     if clean_screen is True:
         clear(clean_type)
     print_color("bright_blue", WELCOME_TEXT_PT)
     print()
-    logger.debug(f"[welcome]清除螢幕內容： {clean_screen}")
     return None
 
 
 def clear(clear_type="command"):
     """清楚螢幕上的內容
+    用法：
+        `clear_type`可用選項:
+            =>command   這是最推薦的選項
+            =>unicode   不推薦，效果不佳
+            =>count     大量換行
     (return None)"""
     if clear_type in ["command", "命令"]:
         if os.name == "nt":
@@ -676,31 +716,43 @@ def clear(clear_type="command"):
         else:
             subprocess.run(["clear"])
     elif clear_type in ["unicode", "編碼"]:
-        print_color("reset", "\n" * 10000000)
-        print_color("reset", "\033[H")
-    else:
-        logger.warn(f"[clear]未知清除方式：「{clear_type}」 | 系統類型：{os.name}")
-        return None
+        print_color("reset", "\033[H \033[J")
+    elif clear_type in ["count", "數量"]:
+        print_color("reset", "\n" * 100000000)
     #
-    logger.debug(f"[clear]清楚方式:{clear_type} | 系統類型：{os.name}")
     return None
 
-
-def print_color(color: str = "reset", *texts):
-    """顯示多段相同顏色的文字，不換行
+def print_color(color_give: str = "reset", *texts, end="", type="python"):
+    r"""顯示多段相同顏色的文字，不換行
     用法：
-        `color_give`,類型: 字串str，來自COLORS字典的顏色
+        `color_give`    類型: 字串str，來自COLORS字典的顏色
+        `end`           不會有顏色的文字，可以放「\r」 或 「\n」之類的
     """
-    if color in COLORS:
-        color_code = COLORS[color]
-    else:
-        color_code = ""
+    color_code = ""
+    color_list = get_parts(color_give.strip(), split_item=",")
+    for color in color_list:
+        if color in COLORS:
+            color_code = color_code + COLORS[color]
     #
     all_text = ""
     for text in texts:
         all_text = all_text + str(text)
-    print(color_code + all_text + COLORS["reset"], end="")
-    logger.debug(f"[print_color]顏色:「{color}」 | 文字:「{all_text}」")
+    ######
+    finish_text = color_code + all_text + COLORS["reset"] + end
+    if type in ["python", "py"]:
+        print(finish_text, end="")
+        ###
+        if end == "\r":
+            print(" " * 100, end="\r")
+    elif type in ["sys"]:
+        sys.stdout.write(finish_text)
+        sys.stdout.flush()
+        ###
+        if end == "\r":
+            sys.stdout.write((" " * 100) + "\r")
+            sys.stdout.flush()
+    else:
+        pt_logger.warning(f"(pt)[print_color]未知類型：「{type}」")
 
 
 def print_error(error_text="未取得錯誤信息！"):
@@ -737,9 +789,6 @@ def print_space(
         elif from_front is False:
             text2print = text2print + need_space
     ##
-    logger.debug(
-        f"[print_space]顏色: {color} | 文字: `{text}` | 長度： {space_long} | 結果： `{text2print}` | 從前方開始： {from_front} | 顯示： {print_it} | 填充物： `{fill_item}`"
-    )
     if print_it is True:
         print_color(color, text2print)
         return None
@@ -748,15 +797,26 @@ def print_space(
     ##end##
 
 
-def print_long(color: str, text: str):
+def print_long(color: str = "reset", text: str = PT_change_log, page_long_size: int = 25, clean_type: str ="command"):
     """顯示很長的文字"""
     text_str: str = str(text)
-    page_long_size: int = 500
+    text_list: list = get_parts(text_str, split_item="\n")
     list_long_max: int = page_long_size
     list_long_min: int = 0
     while True:
-        clear()
-        print_color(color, text_str[list_long_min:list_long_max])
+        clear(clean_type)
+        for i in range(list_long_min, list_long_max):
+            if i > (len(text_list) - 1):
+                break
+            elif i == (len(text_list) - 1):
+                print_color(color, text_list[i])
+                print()
+                print_color("dim", "（文字結尾）")
+                print()
+                break
+            else:
+                print_color(color, text_list[i])
+                print()
         print()
         user_choose = con("bg_true_teal", "下一頁n/上一頁b，返回q： ")
         if user_choose == "q":
@@ -764,8 +824,8 @@ def print_long(color: str, text: str):
         elif user_choose == "n":
             list_long_min += page_long_size
             list_long_max += page_long_size
-            if list_long_max > len(text_str):
-                list_long_max = len(text_str)
+            if list_long_max > len(text_list):
+                list_long_max = len(text_list)
                 list_long_min = list_long_max - page_long_size
                 continue
         elif user_choose == "b":
@@ -782,7 +842,7 @@ def print_long(color: str, text: str):
             con()
 
 
-def print_len(color, text, len_long: int, print_it: bool = True, fill_item=" "):
+def print_len(color, text, len_long: int, print_it: bool = True, fill_item=" ", shorter_item="..."):
     """顯示或返回指定長度的文字
     用法：
         `color`, 類型: str，顏色
@@ -790,11 +850,15 @@ def print_len(color, text, len_long: int, print_it: bool = True, fill_item=" "):
         `print_it`
             True時,顯示(返回 None)
             False時,不顯示，返回結果文字
-        `fill_item`, 建議類型: str，預設“ ”（空格）在長度不足時使用，註：不管哪種類型都會str(text)"""
+        `fill_item`, 建議類型: str，預設“ ”（空格）在長度不足時使用，註：不管哪種類型都會str(text)
+    (return str | None)"""
     text_str = str(text)
     text_str_len = len(text_str)
+    shorter_item_str = str(shorter_item)
+    shorter_item_str_len = len(shorter_item_str)
+    #
     if text_str_len > len_long:
-        finish_text = text_str[:len_long]
+        finish_text = text_str[:(len_long - shorter_item_str_len)] + str(shorter_item)
     elif text_str_len == len_long:
         finish_text = text_str
     elif text_str_len < len_long:
@@ -809,47 +873,87 @@ def print_len(color, text, len_long: int, print_it: bool = True, fill_item=" "):
         return finish_text
 
 
-def color_text(color_give: list, text: str, ResetIt: bool = True):
-    """將文字著色"""
-    for color in color_give:
+def color_text(color_give: str, text, ResetIt: bool = True) -> str:
+    """將文字著色
+    用法：
+        `color_give_str`    類型: str   ，來自COLORS字典的顏色
+        `text`              類型: str   ，將要著色的文字
+        `ResetIt`           類型: bool  ，是否在文字後面加上重置顏色的'\\033[0m'
+    例：
+        >>>print(color_text("red", "這是紅色文字"))
+        這是紅色文字
+        >>>print(color_text("green, bg_yellow", "這是綠色文字，背景黃色"))
+        這是綠色文字，背景黃色
+    (return str)"""
+    text_str = str(text)
+    color_code = ""
+    ##
+    color_list = get_parts(color_give.strip(), split_item=",")
+    ##
+    for color in color_list:
         if color in COLORS:
-            text = COLORS[color] + text
+            color_code = color_code + COLORS[color]
     if ResetIt is True:
-        text = text + COLORS["reset"]
-    logger.debug(f"[color_text]給予的顏色：「{color_give}」 | " + "文字： 「{text}」")
-    return text
+        return color_code + text_str + COLORS["reset"]
+    else:
+        return color_code + text_str
 
 
-def line(color: str = "purple", fill_item="-", line_long: int = 12):
+def line(color: str = "purple", fill_item="-", line_count: int = 1, line_long: int = 12):
     """顯示一條線"""
-    logger.debug(f"[line]顏色: {color} | 填充物:`{fill_item}` | 線長:{line_long}")
-    line_text = str(fill_item) * line_long
+    line_text = (str(fill_item) * line_long) * line_count
     print_color(color, line_text)
 
-def get_lines(text):
+def get_parts(text, split_item="_"):
+    """取得每段的內容
+    例：
+        >>>print(get_parts('a_b_c'))
+        ['a', 'b', 'c']
+        >>>print(get_parts('1-2-3', '-'))
+        ['1', '2', '3']
+    (return all_lines: list)"""
     text_str = str(text)
     text_str_len = len(text_str)
+    split_item_str = str(split_item)
     all_lines = []
-    line_text = ""
-    skip_time = 0
-    for num in range(text_str_len):
-        if skip_time > 0:
-            skip_time -= 1
-            continue
-        if (num + 1) == text_str_len:
-            line_text = line_text + text_str[num]
-            all_lines.append(line_text)
+    split_item_str_len = len(split_item_str)
+    tmp_parts = ""
+    i = 0
+    while i < text_str_len:
+        # 若剩餘長度小於分隔符長度，直接加剩下的內容
+        if (i + split_item_str_len) > text_str_len:
+            tmp_parts += text_str[i:]
             break
-        tmp = text_str[num:num + 1]
-        if tmp == "\n":
-            all_lines.append(line_text)
-            line_text = ""
+        # 若當前為分隔符
+        if text_str[i:i + split_item_str_len] == split_item_str:
+            all_lines.append(tmp_parts)
+            tmp_parts = ""
+            i += split_item_str_len
         else:
-            line_text = line_text + text_str[num]
+            tmp_parts = tmp_parts + text_str[i]
+            i += 1
+    # while 結束後，補上最後一段（若有內容）
+    if tmp_parts != "" or (text_str.endswith(split_item_str)):
+        all_lines.append(tmp_parts)
     return all_lines
 
+def AutoResetColor():
+    def print(*texts, sep="-", end="\n"):
+        """自動重置顏色的print函數
+        (return None)"""
+        all_text = ""
+        for text in texts:
+            if all_text == "":
+                all_text = str(text)
+            else:
+                all_text = str(all_text) + str(sep) + str(text)
+        finish_text = COLORS["reset"] + all_text + COLORS["reset"] + str(end)
+        sys.stdout.write(finish_text)
+        sys.stdout.flush()
+        return None
+
 def con(
-    color: str = "reset",
+    color_give: str = "reset",
     text: str = NO_TEXT,
     ExitInput: bool = True,
 ) -> str:
@@ -857,45 +961,37 @@ def con(
     功能：
     `color`,可輸入COLORS字典有的顏色
     `ExitInput`
-        True時輸入「exit」會退出
-        False時不會退出
+        True    時輸入「exit」會退出
+        False   時不會退出
     """
-    #
-    logger.debug(
-        f"[con](start) 顏色:{color} | 輸入可退出:{ExitInput} | 給予文字:`{text}`"
-    )
-    #
-    if color in COLORS:
-        color_code = COLORS[color]
-    else:
-        color_code = ""
+    color_code = ""
+    color_list = get_parts(color_give.strip(), split_item=",")
+    for color in color_list:
+        if color in COLORS:
+            if color_code == "":
+                color_code = COLORS[color]
+            elif color_code != "":
+                color_code = color_code + COLORS[color]
     #
     if text == NO_TEXT:
-        colored_text = color_code + "要繼續嗎 enter？退出輸入exit\n" + COLORS["reset"]
-    else:
-        colored_text = color_code + text + COLORS["reset"]
+        text = "要繼續嗎 enter？退出輸入exit\n"
+    colored_text = color_code + str(text) + COLORS["reset"]
     try:
         tmp_con = input(colored_text)
-    except EOFError as eofe:
-        logger.debug(f"[con](stop) 原因:「{eofe}」")
+    except (EOFError, KeyboardInterrupt):
         exit()
-    except KeyboardInterrupt as kbir:
-        logger.debug(f"[con](stop) 原因:「{kbir}」")
-        exit()
-    #
-    logger.debug(f" -->[con]顯示文字：`{colored_text}` | 輸入：`{tmp_con}`")
     #
     if ExitInput is True and tmp_con.lower().strip() == "exit":
         exit()
-        logger.debug("  -->[con](exit) 原因:退出輸入")
     else:
         return tmp_con
 
 
 def test():
     """測試功能"""
+    global PT_ver
     welcome()
-    print_color("bg_cyan", "Python Tool工具箱版本:" + PT工具箱_ver)
+    print_color("bg_cyan", "Positive Tool工具箱版本:" + PT_ver)
     print()
     con()
     credit()
@@ -905,10 +1001,15 @@ def test():
     print()
     print_color("light_blue", "更改日誌：")
     print()
-    print_color("cyan", PT工具箱_change_log)
+    print_color("cyan", PT_change_log)
     print()
     con("bg_blue", "有顏色的輸入測試文字(輸入enter)")
     ###
+    print_color("dim", "功能測試<<")
+    line()
+    line()
+    line()
+    #
     print()
     print_space("reset", "顏色", 10, from_front=True, print_it=True, fill_item=" ")
     print_space("reset", "文字", 25, from_front=True, print_it=True, fill_item=" ")
@@ -936,18 +1037,22 @@ def test():
     ##
     print("你選擇了：" + str(select_folder_file()) + "。")
     ##
-    line()
     print()
-    print_len("reset", "(不完全)文字，文字，文字，還是文字", 10)
     print()
-    #
-    print_len("reset", "(完全顯示)文字，文字，還是文字", 20)
+    print_color("bold", "[print_len]測試文字：「文字，文字，文字，還是文字」")
     print()
-    line()
+    print_color("dim", "不完全顯示")
+    print_len("reset", "    =>文字，文字，文字，還是文字", 15)
+    print()
+    print_color("dim", "完全顯示  ") #手動對其，因為中文所占空間=兩個英文
+    print_len("reset", "    =>文字，文字，還是文字", 30)
     print()
     ##
     print()
-    print_color("bg_green", "測試完畢")
+    line()
+    line()
+    line()
+    print_color("green", ">>測試完畢")
     print()
 
 
